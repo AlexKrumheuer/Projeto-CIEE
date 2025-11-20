@@ -1,0 +1,18 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100vw;
+  font-family:  "Inter", sans-serif;
+  background-color: #c0c0c0;
+}
+
+#app {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20% 75%;
+  gap: 1rem;
+}
