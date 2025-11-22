@@ -13,9 +13,13 @@ import com.animalcare.repository.AnimalRepository;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 @RestController
@@ -34,9 +38,16 @@ public class AnimalController {
         return repository.findAll();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Animal> buscarPorId(@PathVariable Long id) {
+        return repository.findById(id)
+               .map(animal -> ResponseEntity.ok(animal))
+               .orElse(ResponseEntity.notFound().build());
+    }
+    
+
     @PostMapping
     public ResponseEntity<Animal> cadastrar(@RequestBody @Valid AnimalRequestDTO dados) {
-        // Convertendo DTO para Entidade
         Animal novoAnimal = new Animal();
         novoAnimal.setNome(dados.nome());
         novoAnimal.setEspecie(dados.especie());
@@ -48,6 +59,31 @@ public class AnimalController {
         Animal animalSalvo = repository.save(novoAnimal);
 
         return ResponseEntity.ok(animalSalvo);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Animal> atualizar(@PathVariable Long id, @RequestBody @Valid AnimalRequestDTO dados) {
+        return repository.findById(id)
+               .map(animal -> {
+                animal.setNome(dados.nome());
+                animal.setEspecie(dados.especie());
+                animal.setDescricao(dados.descricao());
+                animal.setHabitat(dados.habitat());
+                animal.setOrigem(dados.origem());
+                animal.setNascimento(dados.nascimento());
+                Animal animalAtualizado = repository.save(animal);
+                return ResponseEntity.ok(animalAtualizado);
+               })
+               .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
     
 }

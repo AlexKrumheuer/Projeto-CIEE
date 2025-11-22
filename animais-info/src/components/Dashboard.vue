@@ -2,7 +2,8 @@
     import AnimaisRegistrados from './AnimaisRegistrados.vue';
     import FormularioCuidado from './FormularioCuidado.vue';
     import FormularioAnimal from './FormularioAnimal.vue';
-    import {defineProps, ref} from 'vue';
+    import {defineProps, ref, watch} from 'vue';
+    import CuidadosRegistrados from './CuidadosRegistrados.vue';
 
     const props = defineProps({
         telaMostrar: String
@@ -22,53 +23,81 @@
         }
     }
 
-    const animalCriar = {
-        
-    }
-
     const cuidadosInfo = {
         titulo: "Cuidados Registrados",
-        botaoAdicionar: "Adicionar Animal",
+        botaoAdicionar: "Adicionar Cuidado",
         tableHeader: {
             primeiraColuna: "Nome",
             segundaColuna: "Descrição",
-            terceiraColuna: "Data de Nascimento",
-            quartaColuna: "Espécie",
-            quintaColuna: "Habitat",
-            sextaColuna: "País de Origem",
-            setimaColuna: "Ações",
+            terceiraColuna: "Duração",
         }
     }
+    
+    watch(() => props.telaMostrar, () => {
+        criar.value = false
+    })
 
-    const cuidadosCriar = {
-        titulo: "Criar cuidado",
-        botaoAdicionar: "Adicionar Cuidado",
-        tableHeader: {
-            primeiraColuna: "Nome do Cuidado",
-            segundaColuna: "Descrição do cuidado",
-            terceiraColuna: "Frequência do cuidado",
-            quartaColuna: "categoria",
-            quintaColuna: "duração em minutos",
-            sextaColuna: null,
-            setimaColuna: null,
-        }
-    }
-
+    
     let criar = ref(false);
-
+    let editarCuidadoPreencherCamposEditar = ref(null)
+    let editarAnimalPreencherCamposEditar = ref(null)
     const alterarValor = () => {
-        console.log("teste")
-        criar.value = !criar.value;
+        if(criar.value && editarAnimalPreencherCamposEditar.value !== null) {
+            editarAnimalPreencherCamposEditar.value = null
+        }
+        if(criar.value && editarCuidadoPreencherCamposEditar.value !== null){
+            editarCuidadoPreencherCamposEditar.value = null
+            return
+        }
+        editarAnimalPreencherCamposEditar.value = null
+        editarCuidadoPreencherCamposEditar.value = null
+        criar.value = !criar.value
+    }
+
+    const editarAnimaisEmit = (animal) => {
+        if (criar.value && editarAnimalPreencherCamposEditar.value?.id === animal.id) {
+            criar.value = false
+            editarAnimalPreencherCamposEditar.value = null
+            return
+        }
+        editarAnimalPreencherCamposEditar.value = animal
+        criar.value = true
+    }
+
+    const editarCuidadoEmit = (cuidado) => {
+        if (criar.value && editarCuidadoPreencherCamposEditar.value?.id === cuidado.id) {
+            criar.value = false
+            editarCuidadoPreencherCamposEditar.value = null
+            return
+        }
+        editarCuidadoPreencherCamposEditar.value = cuidado
+        criar.value = true
     }
 </script>
 <template>
     <section v-if="telaMostrar == 'animais'" class="dashboard">
-        <AnimaisRegistrados :criar="criar" @alterar-valor="alterarValor" :componente-info="animalInfo"/>
-        <FormularioAnimal v-if="criar" :form-info="animalCriar"/>
+        <AnimaisRegistrados 
+            @editar-animais-emit="editarAnimaisEmit"
+            :criar="criar" 
+            @alterar-valor="alterarValor" 
+            :componente-info="animalInfo"
+        />
+        <FormularioAnimal
+            v-if="criar" 
+            :editar-animal-preencher-dados="editarAnimalPreencherCamposEditar"
+        />
     </section>
     <section v-else class="dashboard">
-        <AnimaisRegistrados :criar="criar" @alterar-valor="alterarValor" :componente-info="cuidadosInfo"/>
-        <FormularioCuidado v-if="criar" :form-info="cuidadosCriar"/>
+        <CuidadosRegistrados 
+            @editar-cuidado-emit="editarCuidadoEmit" 
+            :criar="criar" 
+            @alterar-valor="alterarValor" 
+            :componente-info="cuidadosInfo"
+        />
+        <FormularioCuidado 
+            :editar-cuidado-preencher-campos-editar="editarCuidadoPreencherCamposEditar" 
+            v-if="criar" 
+        />
     </section>
 </template>
 <style>
@@ -76,7 +105,7 @@
         display: grid;
         width: 100%;
         height: auto;
-        grid-template-rows: 45% 45%;
+        grid-template-rows: 60% 25%;
         gap: 2rem;
         padding: 2rem;
     }

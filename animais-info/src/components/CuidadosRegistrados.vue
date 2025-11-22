@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, onMounted, ref, watch } from 'vue';
+import { defineProps, defineEmits, onMounted, ref } from 'vue';
 const props = defineProps({
     componenteInfo: {
         type: Object,
@@ -7,54 +7,55 @@ const props = defineProps({
     },
 })
 
-const emit = defineEmits(['alterar-valor', 'editar-animais-emit'])
+const emit = defineEmits(['alterar-valor', 'editar-cuidado-emit'])
 
-let animais = ref([])
+let cuidados = ref([])
 let carregando = ref(true)
 
-async function carregarAnimais() {
+async function carregarCuidados() {
     try {
-        const resposta = await fetch("http://localhost:8080/api/animais")
+        const resposta = await fetch("http://localhost:8080/api/cuidados")
         if (resposta.ok) {
-            animais.value = await resposta.json()
-            console.log("Animais carregado com sucesso")
+            cuidados.value = await resposta.json()
+            console.log("cuidados carregado com sucesso")
         } else {
-            console.error("Não foi possível buscar os animais")
+            console.error("Não foi possível buscar os cuidados")
         }
     } catch (err) {
-        console.error("Não foi possível carregar os animais")
+        console.error("Não foi possível carregar os cuidados")
     } finally {
         carregando.value = false
     }
 }
 
 onMounted(() => {
-    carregarAnimais();
+    carregarCuidados();
 })
 
 function handleButtonAddClick() {
     emit('alterar-valor')
 }
 
-async function excluirAnimal(id) {
-    const confirmar = confirm("Tem certeza que deseja excluir esse animal?")
+async function excluirCuidado(id) {
+    const confirmar = confirm("Tem certeza que deseja excluir esse cuidado?")
     if(!confirmar) return
     try {
-        const resposta = await fetch(`http://localhost:8080/api/animais/${id}`, {
+        const resposta = await fetch(`http://localhost:8080/api/cuidados/${id}`, {
             method: "DELETE",
         })
         if(resposta.ok) {
-            alert("Animal excluído com sucesso")
-            carregarAnimais()
+            alert("Cuidado excluído com sucesso")
+            carregarCuidados()
         }
     } catch (err) {
-        console.error("Erro ao excluir animal")
+        console.error("Erro ao excluir cuidado")
     }
 }
 
-function editarAnimal(animal) {
-    emit('editar-animais-emit', animal)
+function editarCuidado(cuidado) {
+    emit('editar-cuidado-emit', cuidado)
 }
+
 </script>
 <template>
     <section class="content">
@@ -66,7 +67,7 @@ function editarAnimal(animal) {
             </button>
         </div>
         <p v-if="carregando">Carregando dados...</p>
-        <p v-else-if="animais.length === 0">Nenhum animal encontrado</p>
+        <p v-else-if="cuidados.length === 0">Nenhum animal encontrado</p>
         <div v-else class="wrapper-table">
             <table class="table">
                 <thead class="table-head">
@@ -75,22 +76,16 @@ function editarAnimal(animal) {
                         <th>{{ props.componenteInfo.tableHeader.segundaColuna }}</th>
                         <th>{{ props.componenteInfo.tableHeader.terceiraColuna }}</th>
                         <th>{{ props.componenteInfo.tableHeader.quartaColuna }}</th>
-                        <th>{{ props.componenteInfo.tableHeader.quintaColuna }}</th>
-                        <th>{{ props.componenteInfo.tableHeader.sextaColuna }}</th>
-                        <th>{{ props.componenteInfo.tableHeader.setimaColuna }}</th>
                     </tr>
                 </thead>
                 <tbody class="table-body">
-                    <tr v-for="animal in animais" :key="animal.id">
-                        <td>{{ animal.nome }}</td>
-                        <td>{{ animal.descricao }}</td>
-                        <td>{{ new Date(animal.nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) }}</td>
-                        <td>{{ animal.especie }}</td>
-                        <td>{{ animal.habitat }}</td>
-                        <td>{{ animal.origem }}</td>
+                    <tr v-for="cuidado in cuidados" :key="cuidado.id">
+                        <td>{{ cuidado.nome }}</td>
+                        <td>{{ cuidado.descricao }}</td>
+                        <td>{{ cuidado.duracao }} min</td>
                         <td class="actions">
-                            <fa class="edit" icon="pen" v-on:click="editarAnimal(animal)"/>
-                            <fa class="trash" icon="trash" v-on:click="excluirAnimal(animal.id)" />
+                            <fa class="edit" icon="pen" v-on:click="editarCuidado(cuidado)" />
+                            <fa class="trash" icon="trash" v-on:click="excluirCuidado(cuidado.id)" />
                         </td>
                     </tr>
                 </tbody>
